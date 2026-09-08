@@ -14,6 +14,7 @@
 #include <KDecoration3/Decoration>
 #include <KDecoration3/DecorationSettings>
 
+#include <QPainterPath>
 #include <QPalette>
 #include <QVariant>
 #include <QVariantAnimation>
@@ -49,6 +50,9 @@ public:
 
     //* caption height
     qreal captionHeight() const;
+
+    //* visible titlebar outline, shared by painting and button hit testing
+    QPainterPath titleBarPath() const;
 
     //* button size
     int buttonSize() const;

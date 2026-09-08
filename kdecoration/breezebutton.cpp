@@ -104,7 +104,11 @@ bool Button::containsPoint(const QPointF &point) const
 {
     const QRectF rect = geometry();
     // Use half-open edges so adjoining buttons never share a hit position.
-    return point.x() >= rect.left() && point.x() < rect.right() && point.y() >= rect.top() && point.y() < rect.bottom();
+    if (point.x() < rect.left() || point.x() >= rect.right() || point.y() < rect.top() || point.y() >= rect.bottom()) {
+        return false;
+    }
+    const auto deco = qobject_cast<Decoration *>(decoration());
+    return deco && deco->titleBarPath().contains(point);
 }
 
 //__________________________________________________________________

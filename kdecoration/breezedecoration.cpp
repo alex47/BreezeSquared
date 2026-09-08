@@ -31,6 +31,7 @@
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
 #include <QHoverEvent>
+#include <QImage>
 #include <QPainter>
 #include <QPainterPath>
 #include <QTextStream>
@@ -592,14 +593,13 @@ void Decoration::updateButtonsGeometry()
     m_leftButtons->setSpacing(0);
     m_rightButtons->setSpacing(0);
 
-    // At screen edges, place the squares flush with the edge without widening them.
+    // Preserve Breeze's left margin; the right group always reaches the outer edge.
     if (!m_leftButtons->buttons().isEmpty()) {
         m_leftButtons->setPos(QPointF(isLeftEdge() ? 0 : sideMargin + borderLeft(), 0));
     }
 
     if (!m_rightButtons->buttons().isEmpty()) {
-        const qreal rightMargin = isRightEdge() ? 0 : sideMargin + borderRight();
-        m_rightButtons->setPos(QPointF(size().width() - m_rightButtons->geometry().width() - rightMargin, 0));
+        m_rightButtons->setPos(QPointF(size().width() - m_rightButtons->geometry().width(), 0));
     }
 
     update();
@@ -654,7 +654,30 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintRegion)
 }
 
 //________________________________________________________________
-void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
+QPainterPath Decoration::titleBarPath() const
+{
+    QPainterPath path;
+    if (hideTitleBar()) {
+        return path;
+    }
+
+    const QRectF rect(QPointF(0, 0), QSizeF(size().width(), borderTop()));
+    if (isMaximized() || !settings()->isAlphaChannelSupported()) {
+        path.addRect(rect);
+    } else {
+        path.setFillRule(Qt::WindingFill);
+        path.addRoundedRect(rect, m_scaledCornerRadius, m_scaledCornerRadius);
+        if (!window()->isShaded()) {
+            // Only shaded windows have rounded bottom titlebar corners.
+            const qreal radius = std::min(m_scaledCornerRadius, rect.height() / 2);
+            path.addRect(QRectF(0, rect.bottom() - radius, rect.width(), radius));
+        }
+    }
+    return path;
+}
+
+//________________________________________________________________
+void Decoration::paintTitleBar(QPainter *targetPainter, const QRectF &repaintRegion)
 {
     QRectF rect(QPointF(0, 0), QSizeF(size().width(), borderTop()));
     QBrush frontBrush;
@@ -664,8 +687,27 @@ void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
         return;
     }
 
+    // The preview may already have painted a shadow underneath the corners.
+    // Use an independent layer so button painting is masked only by the titlebar.
+    // Match device coordinates to preserve fractional scaling and translations.
+    QTransform transform = targetPainter->deviceTransform();
+    const QRect deviceRect = transform.mapRect(rect).toAlignedRect();
+    if (deviceRect.isEmpty()) {
+        return;
+    }
+    QImage image(deviceRect.size(), QImage::Format_ARGB32_Premultiplied);
+    image.setDotsPerMeterX(qRound(targetPainter->device()->logicalDpiX() / 0.0254));
+    image.setDotsPerMeterY(qRound(targetPainter->device()->logicalDpiY() / 0.0254));
+    image.fill(Qt::transparent);
+    QPainter layerPainter(&image);
+    transform *= QTransform::fromTranslate(-deviceRect.x(), -deviceRect.y());
+    layerPainter.setWorldTransform(transform);
+    layerPainter.setRenderHints(targetPainter->renderHints());
+    QPainter *painter = &layerPainter;
+
     painter->save();
     painter->setPen(Qt::NoPen);
+    painter->setRenderHint(QPainter::Antialiasing);
 
     // render a linear gradient on title area
     if (window()->isActive() && m_internalSettings->drawBackgroundGradient()) {
@@ -681,34 +723,9 @@ void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
         painter->setBrush(titleBarColor());
     }
 
-    if (isMaximized() || !settings()->isAlphaChannelSupported()) {
-        painter->setBrush(backBrush);
-        painter->drawRect(rect);
-
-        painter->setBrush(frontBrush);
-        painter->drawRect(rect);
-    } else if (window()->isShaded()) {
-        painter->setBrush(backBrush);
-        painter->drawRoundedRect(rect, m_scaledCornerRadius, m_scaledCornerRadius);
-
-        painter->setBrush(frontBrush);
-        painter->drawRoundedRect(rect, m_scaledCornerRadius, m_scaledCornerRadius);
-
-    } else {
-        painter->setClipRect(rect, Qt::IntersectClip);
-
-        auto drawThe = [this, painter](const QRectF &r) {
-            painter->drawRoundedRect(r, m_scaledCornerRadius, m_scaledCornerRadius);
-            // remove the rounding on the bottom
-            painter->drawRect(QRectF(r.bottomLeft() - QPointF(0, m_scaledCornerRadius), r.bottomRight()));
-        };
-
-        painter->setBrush(backBrush);
-        drawThe(rect);
-
-        painter->setBrush(frontBrush);
-        drawThe(rect);
-    }
+    const QPainterPath path = titleBarPath();
+    painter->fillPath(path, backBrush);
+    painter->fillPath(path, frontBrush);
 
     painter->restore();
 
@@ -720,8 +737,22 @@ void Decoration::paintTitleBar(QPainter *painter, const QRectF &repaintRegion)
     painter->drawText(captionRectangle, alignment | Qt::TextSingleLine, caption);
 
     // draw all buttons
+    painter->save();
+    // Clip to the outline's painted alpha, preserving its antialiased edge even
+    // under opaque hover/pressed backgrounds. A second path clip would quantize
+    // that edge, and ordinary source-over painting would increase its opacity.
+    painter->setCompositionMode(QPainter::CompositionMode_SourceAtop);
     m_leftButtons->paint(painter, repaintRegion);
     m_rightButtons->paint(painter, repaintRegion);
+    painter->restore();
+
+    layerPainter.end();
+    targetPainter->save();
+    targetPainter->resetTransform();
+    const qreal devicePixelRatio = targetPainter->device()->devicePixelRatioF();
+    image.setDevicePixelRatio(devicePixelRatio);
+    targetPainter->drawImage(QPointF(deviceRect.topLeft()) / devicePixelRatio, image);
+    targetPainter->restore();
 }
 
 //________________________________________________________________
