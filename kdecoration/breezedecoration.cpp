@@ -34,7 +34,7 @@
 #include <QTextStream>
 #include <QTimer>
 
-K_PLUGIN_FACTORY_WITH_JSON(BreezeDecoFactory, "breeze.json", registerPlugin<Breeze::Decoration>(); registerPlugin<Breeze::Button>();)
+K_PLUGIN_FACTORY_WITH_JSON(BreezeSquaredDecoFactory, "breezesquared.json", registerPlugin<Breeze::Decoration>(); registerPlugin<Breeze::Button>();)
 
 namespace
 {
@@ -204,7 +204,7 @@ void Decoration::init()
         updateShadow();
     });
 
-    // use DBus connection to update on breeze configuration change
+    // use DBus connection to update on global configuration changes
     auto dbus = QDBusConnection::sessionBus();
     dbus.connect(QString(),
                  QStringLiteral("/KGlobalSettings"),

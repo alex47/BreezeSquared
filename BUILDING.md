@@ -35,7 +35,7 @@ It uses `kde-builder.yaml` and the existing KDE Builder metadata installed
 during setup. It skips metadata updates, source updates, and installation.
 The source branch stays on the current working branch.
 
-Only the `breezedecoration` and `kcm_breezedecoration` targets are compiled,
+Only the `breezesquareddecoration` and `kcm_breezesquareddecoration` targets are compiled,
 using Qt 6 and an optimized build with debugging information. The upstream
 CMake configuration still checks dependencies for other Breeze components.
 
@@ -43,8 +43,8 @@ All build output, logs, persistent build state, and KDE Builder's Git URL
 aliases are stored in the ignored `build` directory. For this checkout name,
 the plugins are produced under:
 
-- `build/breezesquared/bin/org.kde.breeze.so`
-- `build/breezesquared/bin/org.kde.kdecoration3.kcm/kcm_breezedecoration.so`
+- `build/breezesquared/bin/org.kde.breezesquared.so`
+- `build/breezesquared/bin/org.kde.kdecoration3.kcm/kcm_breezesquareddecoration.so`
 
 An optional `KF6FrameworkIntegration` warning concerns the application style;
 it does not prevent these decoration targets from building.
@@ -54,6 +54,21 @@ after changing configuration options.
 
 ## Installation
 
-This setup only builds. The plugins still have their upstream Breeze
-identities. Give the fork separate plugin and settings identities before
-installing it alongside the system Breeze decoration.
+This setup only builds. The fork uses these identities:
+
+| Item | Identity |
+| --- | --- |
+| Decoration name | BreezeSquared |
+| Decoration plugin | `org.kde.breezesquared` |
+| Settings plugin | `kcm_breezesquareddecoration` |
+| Settings file | `breezesquaredrc` in the user's KDE configuration directory |
+| CMake package | `BreezeSquared` |
+
+Settings are independent of Breeze's `breezerc`; no existing settings are
+copied or migrated automatically. Standard KWin settings, such as the
+title-bar button layout, remain managed by KWin.
+
+The repository also retains upstream application styles and assets. A future
+installation step must select the fork's decoration components rather than
+installing the full upstream tree. The build script does not install or
+activate either plugin.

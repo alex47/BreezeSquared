@@ -1,4 +1,14 @@
-# Breeze
+# BreezeSquared
+
+BreezeSquared is a fork of the Breeze window decoration, starting from
+upstream release `v6.6.5`. It has its own decoration plugin, settings module,
+and `breezesquaredrc` settings file.
+
+See [BUILDING.md](BUILDING.md) for the KDE Builder workflow. The working build
+targets the window decoration and its settings module. The remaining upstream
+components are retained in the repository.
+
+## Upstream Breeze
 
 Breeze is the default style for [Plasma](https://kde.org/plasma-desktop/). This repository contains some parts of Breeze such as the cursors, wallpapers, and the application style.
 

@@ -30,5 +30,5 @@ project breezesquared:
   no-src: ""
   no-install: ""
   targets:
-    - breezedecoration
-    - kcm_breezedecoration
+    - breezesquareddecoration
+    - kcm_breezesquareddecoration

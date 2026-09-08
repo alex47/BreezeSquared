@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(breeze)
+project(breezesquared)
 set(PROJECT_VERSION "6.6.5")
 
 set(KF5_MIN_VERSION "5.102.0")
@@ -171,18 +171,18 @@ function(build_Qt6)
 
     # create a Config.cmake and a ConfigVersion.cmake file and install them
     include(ECMSetupVersion)
-    ecm_setup_version(${PROJECT_VERSION} VARIABLE_PREFIX BREEZE
-        PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/BreezeConfigVersion.cmake"
+    ecm_setup_version(${PROJECT_VERSION} VARIABLE_PREFIX BREEZESQUARED
+        PACKAGE_VERSION_FILE "${CMAKE_CURRENT_BINARY_DIR}/BreezeSquaredConfigVersion.cmake"
     )
-    set(CMAKECONFIG_INSTALL_DIR "${KDE_INSTALL_CMAKEPACKAGEDIR}/Breeze")
+    set(CMAKECONFIG_INSTALL_DIR "${KDE_INSTALL_CMAKEPACKAGEDIR}/BreezeSquared")
 
-    configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/BreezeConfig.cmake.in"
-                                  "${CMAKE_CURRENT_BINARY_DIR}/BreezeConfig.cmake"
+    configure_package_config_file("${CMAKE_CURRENT_SOURCE_DIR}/BreezeSquaredConfig.cmake.in"
+                                  "${CMAKE_CURRENT_BINARY_DIR}/BreezeSquaredConfig.cmake"
                                   PATH_VARS KDE_INSTALL_FULL_DATADIR
                                   INSTALL_DESTINATION  ${CMAKECONFIG_INSTALL_DIR}
     )
-    install(FILES  "${CMAKE_CURRENT_BINARY_DIR}/BreezeConfig.cmake"
-                   "${CMAKE_CURRENT_BINARY_DIR}/BreezeConfigVersion.cmake"
+    install(FILES  "${CMAKE_CURRENT_BINARY_DIR}/BreezeSquaredConfig.cmake"
+                   "${CMAKE_CURRENT_BINARY_DIR}/BreezeSquaredConfigVersion.cmake"
             DESTINATION "${CMAKECONFIG_INSTALL_DIR}"
             COMPONENT Devel
     )
