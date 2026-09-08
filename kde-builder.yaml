@@ -1,0 +1,34 @@
+# Run through build.sh, which supplies paths for this checkout.
+config-version: 2
+
+global:
+  include-dependencies: false
+  install-login-session: false
+  hold-performance-profile: false
+  check-self-updates: false
+  stop-on-failure: true
+  directory-layout: flat
+  cmake-generator: Ninja
+  ninja-options: -j4
+  run-tests: false
+  compile-commands-export: true
+  compile-commands-linking: false
+  generate-clion-project-config: false
+  generate-vscode-project-config: false
+  generate-qtcreator-project-config: false
+
+  cmake-options: >-
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    -DBUILD_QT5=OFF
+    -DBUILD_QT6=ON
+    -DWITH_DECORATIONS=ON
+    -DWITH_WALLPAPERS=OFF
+    -DBUILD_TESTING=OFF
+
+project breezesquared:
+  repository: https://invent.kde.org/plasma/breeze.git
+  no-src: ""
+  no-install: ""
+  targets:
+    - breezedecoration
+    - kcm_breezedecoration
