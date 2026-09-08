@@ -140,6 +140,12 @@ void Button::paint(QPainter *painter, const QRectF &repaintRegion)
 //__________________________________________________________________
 void Button::drawIcon(QPainter *painter) const
 {
+    // Fill the full hit area, including padding used at screen edges.
+    const QColor backgroundColor(this->backgroundColor());
+    if (backgroundColor.isValid()) {
+        painter->fillRect(geometry(), backgroundColor);
+    }
+
     painter->setRenderHints(QPainter::Antialiasing);
 
     /*
@@ -153,14 +159,6 @@ void Button::drawIcon(QPainter *painter) const
     const qreal width(rect.width());
     painter->scale(width / 20, width / 20);
     painter->translate(1, 1);
-
-    // render background
-    const QColor backgroundColor(this->backgroundColor());
-    if (backgroundColor.isValid()) {
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(backgroundColor);
-        painter->drawEllipse(QRectF(0, 0, 18, 18));
-    }
 
     // render mark
     const QColor foregroundColor(this->foregroundColor());
