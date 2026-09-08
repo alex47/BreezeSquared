@@ -105,6 +105,8 @@ private Q_SLOTS:
     void updateScale();
 
 private:
+    void hoverMoveEvent(QHoverEvent *event) override;
+
     //* return the rect in which caption will be drawn
     QPair<QRectF, Qt::Alignment> captionRect() const;
 

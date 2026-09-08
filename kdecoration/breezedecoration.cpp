@@ -25,10 +25,12 @@
 #include <KSharedConfig>
 
 #include <KColorScheme>
+#include <QCoreApplication>
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusPendingCallWatcher>
 #include <QDBusPendingReply>
+#include <QHoverEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QTextStream>
@@ -276,6 +278,7 @@ void Decoration::init()
     connect(window(), &KDecoration3::DecoratedWindow::maximizedChanged, this, &Decoration::updateButtonsGeometry);
     connect(window(), &KDecoration3::DecoratedWindow::adjacentScreenEdgesChanged, this, &Decoration::updateButtonsGeometry);
     connect(window(), &KDecoration3::DecoratedWindow::shadedChanged, this, &Decoration::updateButtonsGeometry);
+    connect(this, &KDecoration3::Decoration::bordersChanged, this, &Decoration::updateButtonsGeometry);
 
     connect(window(), &KDecoration3::DecoratedWindow::nextScaleChanged, this, &Decoration::updateScale);
 
@@ -297,6 +300,55 @@ void Decoration::updateTitleBar()
     const qreal x = maximized ? 0 : s->smallSpacing() * Metrics::TitleBar_SideMargin;
     const qreal y = (maximized || isTopEdge()) ? 0 : s->smallSpacing() * Metrics::TitleBar_TopMargin;
     setTitleBar(QRectF(x, y, width, height));
+}
+
+//________________________________________________________________
+void Decoration::hoverMoveEvent(QHoverEvent *event)
+{
+    // Use exact button rectangles, avoiding KDecoration's integer rounding at
+    // fractional scales. A point inside the same button and the titlebar also
+    // gives the normal cursor over the former resize strip above a button.
+    for (const auto group : {m_leftButtons, m_rightButtons}) {
+        if (!group) {
+            continue;
+        }
+        for (const auto button : group->buttons()) {
+            const auto btn = static_cast<Button *>(button);
+            if (btn->isVisible() && btn->isEnabled() && btn->containsPoint(event->position())) {
+                const QRectF interior = btn->geometry().intersected(titleBar());
+                if (!interior.isEmpty()) {
+                    QHoverEvent titleBarEvent(QEvent::HoverMove,
+                                              interior.center(),
+                                              event->globalPosition(),
+                                              event->oldPosF(),
+                                              event->modifiers(),
+                                              event->pointingDevice());
+                    KDecoration3::Decoration::hoverMoveEvent(&titleBarEvent);
+                    event->setAccepted(titleBarEvent.isAccepted());
+                    return;
+                }
+            }
+        }
+    }
+
+    // Outside the buttons, retain the original titlebar and resize behavior.
+    KDecoration3::Decoration::hoverMoveEvent(event);
+    for (const auto group : {m_leftButtons, m_rightButtons}) {
+        if (!group) {
+            continue;
+        }
+        for (const auto button : group->buttons()) {
+            if (button->isHovered()) {
+                QHoverEvent leaveEvent(QEvent::HoverLeave,
+                                       QPointF(-1, -1),
+                                       event->globalPosition(),
+                                       event->oldPosF(),
+                                       event->modifiers(),
+                                       event->pointingDevice());
+                QCoreApplication::sendEvent(button, &leaveEvent);
+            }
+        }
+    }
 }
 
 //________________________________________________________________
@@ -521,68 +573,33 @@ void Decoration::updateButtonsGeometryDelayed()
 //________________________________________________________________
 void Decoration::updateButtonsGeometry()
 {
-    const auto s = settings();
+    if (!m_leftButtons || !m_rightButtons) {
+        return;
+    }
 
-    // adjust button position
+    // The existing titlebar height determines the hit area, not the icon size.
+    const qreal height = borderTop();
+    const qreal sideMargin = settings()->smallSpacing() * Metrics::TitleBar_SideMargin;
+
     const auto buttonList = m_leftButtons->buttons() + m_rightButtons->buttons();
     for (KDecoration3::DecorationButton *button : buttonList) {
         auto btn = static_cast<Button *>(button);
-
-        const int verticalOffset = (isTopEdge() ? s->smallSpacing() * Metrics::TitleBar_TopMargin : 0);
-
-        const QSizeF preferredSize = btn->preferredSize();
-        const int bHeight = preferredSize.height() + verticalOffset;
-        const int bWidth = preferredSize.width();
-
-        btn->setGeometry(QRectF(QPoint(0, 0), QSizeF(bWidth, bHeight)));
-        btn->setPadding(QMargins(0, verticalOffset, 0, 0));
+        // Preserve spacers explicitly placed in the user's button layout.
+        const qreal width = btn->type() == KDecoration3::DecorationButtonType::Spacer ? btn->preferredSize().width() : height;
+        btn->setGeometry(QRectF(QPointF(0, 0), QSizeF(width, height)));
     }
 
-    // left buttons
+    m_leftButtons->setSpacing(0);
+    m_rightButtons->setSpacing(0);
+
+    // At screen edges, place the squares flush with the edge without widening them.
     if (!m_leftButtons->buttons().isEmpty()) {
-        // spacing
-        m_leftButtons->setSpacing(s->smallSpacing() * Metrics::TitleBar_ButtonSpacing);
-
-        // padding
-        const int vPadding = isTopEdge() ? 0 : s->smallSpacing() * Metrics::TitleBar_TopMargin;
-        const int hPadding = s->smallSpacing() * Metrics::TitleBar_SideMargin;
-        if (isLeftEdge()) {
-            // add offsets on the side buttons, to preserve padding, but satisfy Fitts law
-            auto button = static_cast<Button *>(m_leftButtons->buttons().front());
-
-            QRectF geometry = button->geometry();
-            geometry.adjust(-hPadding, 0, 0, 0);
-            button->setGeometry(geometry);
-            button->setLeftPadding(hPadding);
-
-            m_leftButtons->setPos(QPointF(0, vPadding));
-
-        } else {
-            m_leftButtons->setPos(QPointF(hPadding + borderLeft(), vPadding));
-        }
+        m_leftButtons->setPos(QPointF(isLeftEdge() ? 0 : sideMargin + borderLeft(), 0));
     }
 
-    // right buttons
     if (!m_rightButtons->buttons().isEmpty()) {
-        // spacing
-        m_rightButtons->setSpacing(s->smallSpacing() * Metrics::TitleBar_ButtonSpacing);
-
-        // padding
-        const int vPadding = isTopEdge() ? 0 : s->smallSpacing() * Metrics::TitleBar_TopMargin;
-        const int hPadding = s->smallSpacing() * Metrics::TitleBar_SideMargin;
-        if (isRightEdge()) {
-            auto button = static_cast<Button *>(m_rightButtons->buttons().back());
-
-            QRectF geometry = button->geometry();
-            geometry.adjust(0, 0, hPadding, 0);
-            button->setGeometry(geometry);
-            button->setRightPadding(hPadding);
-
-            m_rightButtons->setPos(QPointF(size().width() - m_rightButtons->geometry().width(), vPadding));
-
-        } else {
-            m_rightButtons->setPos(QPointF(size().width() - m_rightButtons->geometry().width() - hPadding - borderRight(), vPadding));
-        }
+        const qreal rightMargin = isRightEdge() ? 0 : sideMargin + borderRight();
+        m_rightButtons->setPos(QPointF(size().width() - m_rightButtons->geometry().width() - rightMargin, 0));
     }
 
     update();

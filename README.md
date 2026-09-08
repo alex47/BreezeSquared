@@ -4,9 +4,11 @@ BreezeSquared is a fork of the Breeze window decoration, starting from
 upstream release `v6.6.5`. It has its own decoration plugin, settings module,
 and `breezesquaredrc` settings file.
 
-Button highlights are rectangles that fill the existing hover and click areas,
-including their extensions at screen edges. Icons, colors, animations, and
-button spacing retain Breeze's behavior.
+Buttons have square hover, click, and highlight areas spanning the full title-bar
+height, with no automatic gaps between adjacent buttons. The title-bar height
+retains Breeze's calculation, and the original icons are centered inside the
+larger buttons at their existing size. Explicit layout spacers, colors, and
+animations retain Breeze's behavior.
 
 See [BUILDING.md](BUILDING.md) for the KDE Builder workflow. The working build
 targets the window decoration and its settings module. The remaining upstream

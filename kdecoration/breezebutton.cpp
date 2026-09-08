@@ -10,6 +10,7 @@
 #include <KDecoration3/DecoratedWindow>
 #include <KIconLoader>
 
+#include <QMouseEvent>
 #include <QPainter>
 #include <QPainterPath>
 #include <QVariantAnimation>
@@ -99,6 +100,43 @@ Button *Button::create(DecorationButtonType type, KDecoration3::Decoration *deco
 }
 
 //__________________________________________________________________
+bool Button::containsPoint(const QPointF &point) const
+{
+    const QRectF rect = geometry();
+    // Use half-open edges so adjoining buttons never share a hit position.
+    return point.x() >= rect.left() && point.x() < rect.right() && point.y() >= rect.top() && point.y() < rect.bottom();
+}
+
+//__________________________________________________________________
+bool Button::event(QEvent *event)
+{
+    switch (event->type()) {
+    case QEvent::MouseButtonPress:
+    case QEvent::MouseButtonRelease:
+    case QEvent::MouseMove: {
+        auto mouseEvent = static_cast<QMouseEvent *>(event);
+        // KDecoration rounds geometry for hit testing. Preserve its input state
+        // machine, but make membership agree with the painted fractional rect.
+        const QPointF position = containsPoint(mouseEvent->position()) ? geometry().center() : QPointF(-1, -1);
+        QMouseEvent mappedEvent(mouseEvent->type(),
+                                position,
+                                mouseEvent->globalPosition(),
+                                mouseEvent->button(),
+                                mouseEvent->buttons(),
+                                mouseEvent->modifiers(),
+                                mouseEvent->pointingDevice());
+        mappedEvent.setTimestamp(mouseEvent->timestamp());
+        mappedEvent.setAccepted(mouseEvent->isAccepted());
+        const bool handled = KDecoration3::DecorationButton::event(&mappedEvent);
+        event->setAccepted(mappedEvent.isAccepted());
+        return handled;
+    }
+    default:
+        return KDecoration3::DecorationButton::event(event);
+    }
+}
+
+//__________________________________________________________________
 void Button::paint(QPainter *painter, const QRectF &repaintRegion)
 {
     Q_UNUSED(repaintRegion)
@@ -109,7 +147,7 @@ void Button::paint(QPainter *painter, const QRectF &repaintRegion)
 
     switch (type()) {
     case KDecoration3::DecorationButtonType::Menu: {
-        const QRectF iconRect = geometry().marginsRemoved(m_padding);
+        const QRectF iconRect = this->iconRect();
         const auto c = decoration()->window();
         if (auto deco = qobject_cast<Decoration *>(decoration())) {
             const QPalette activePalette = KIconLoader::global()->customPalette();
@@ -138,9 +176,17 @@ void Button::paint(QPainter *painter, const QRectF &repaintRegion)
 }
 
 //__________________________________________________________________
+QRectF Button::iconRect() const
+{
+    QRectF rect(QPointF(0, 0), preferredSize());
+    rect.moveCenter(geometry().center());
+    return rect;
+}
+
+//__________________________________________________________________
 void Button::drawIcon(QPainter *painter) const
 {
-    // Fill the full hit area, including padding used at screen edges.
+    // Fill the full hit area independently of the icon size.
     const QColor backgroundColor(this->backgroundColor());
     if (backgroundColor.isValid()) {
         painter->fillRect(geometry(), backgroundColor);
@@ -153,7 +199,7 @@ void Button::drawIcon(QPainter *painter) const
     this makes all further rendering and scaling simpler
     all further rendering is performed inside QRect( 0, 0, 18, 18 )
     */
-    const QRectF rect = geometry().marginsRemoved(m_padding);
+    const QRectF rect = iconRect();
     painter->translate(rect.topLeft());
 
     const qreal width(rect.width());

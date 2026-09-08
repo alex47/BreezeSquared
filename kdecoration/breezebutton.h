@@ -33,24 +33,9 @@ public:
 
     //* render
     void paint(QPainter *painter, const QRectF &repaintRegion) override;
+    bool event(QEvent *event) override;
 
-    //* padding
-    void setPadding(const QMargins &value)
-    {
-        m_padding = value;
-    }
-
-    //* left padding, for rendering
-    void setLeftPadding(qreal value)
-    {
-        m_padding.setLeft(value);
-    }
-
-    //* right padding, for rendering
-    void setRightPadding(qreal value)
-    {
-        m_padding.setRight(value);
-    }
+    bool containsPoint(const QPointF &point) const;
 
     //*@name active state change animation
     //@{
@@ -94,6 +79,7 @@ private:
 
     //* draw button icon
     void drawIcon(QPainter *) const;
+    QRectF iconRect() const;
 
     //*@name colors
     //@{
@@ -104,10 +90,7 @@ private:
     //* active state change animation
     QVariantAnimation *m_animation;
 
-    //* padding (for rendering)
-    QMargins m_padding;
-
-    //* implicit size
+    //* icon size, independent of the full-height button geometry
     QSizeF m_preferredSize;
 
     //* active state change opacity
