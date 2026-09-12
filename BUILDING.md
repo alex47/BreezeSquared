@@ -52,6 +52,21 @@ it does not prevent these decoration targets from building.
 Re-run `./build.sh` for incremental builds. Use `./build.sh --reconfigure`
 after changing configuration options.
 
+## Regression tests
+
+The tracked regression suite can build from a clean checkout without KDE Builder:
+
+```sh
+python3 tests/run_tests.py
+```
+
+It needs the development packages above, Git, CMake, Ninja, Python 3.12 or newer,
+and DejaVu Sans (`fonts-dejavu-core` on Ubuntu). It builds the fork and its recorded
+upstream reference from local source, then checks geometry, input, rendering, and
+compatibility with the upstream title-bar size and icons. It does not install or
+activate plugins. See [tests/README.md](tests/README.md) for results, faster checks,
+and limitations; see [FORK.md](FORK.md) for upstream porting.
+
 ## Installation
 
 This setup only builds. The fork uses these identities:

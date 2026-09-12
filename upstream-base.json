@@ -1,0 +1,7 @@
+{
+    "repository": "https://invent.kde.org/plasma/breeze.git",
+    "tag": "v6.6.5",
+    "commit": "bfe46a06e92a196fe3051706051d5c5e2d497e92",
+    "decoration_target": "breezedecoration",
+    "decoration_file": "bin/org.kde.breeze.so"
+}

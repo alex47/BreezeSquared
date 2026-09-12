@@ -16,6 +16,10 @@ See [BUILDING.md](BUILDING.md) for the KDE Builder workflow. The working build
 targets the window decoration and its settings module. The remaining upstream
 components are retained in the repository.
 
+See [FORK.md](FORK.md) for the change map and upstream upgrade procedure,
+[tests/README.md](tests/README.md) for reproducible regression checks, and
+[AGENTS.md](AGENTS.md) for project working instructions.
+
 ## Upstream Breeze
 
 Breeze is the default style for [Plasma](https://kde.org/plasma-desktop/). This repository contains some parts of Breeze such as the cursors, wallpapers, and the application style.
