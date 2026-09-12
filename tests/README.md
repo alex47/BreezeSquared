@@ -14,6 +14,15 @@ plus Python 3.12 or newer, Git, CMake, Ninja, and the DejaVu Sans font (on Ubunt
 synthetic bridge. A complete clone must contain the tag and commit recorded in
 [upstream-base.json](../upstream-base.json).
 
+For a new checkout, clone the fork and add KDE as the upstream remote:
+
+```sh
+git clone --branch breezesquared https://github.com/alex47/BreezeSquared.git
+cd BreezeSquared
+git remote add upstream https://invent.kde.org/plasma/breeze.git
+git config remote.pushDefault origin
+```
+
 From the repository root:
 
 ```sh

@@ -42,4 +42,5 @@ upstream base. Read [BUILDING.md](BUILDING.md) for builds and
 - Commit focused, verified milestones. Inspect working and staged changes, and
   stage explicit paths. Do not include unrelated work or build artifacts.
 - Do not amend, squash, rebase, reset, or push unless explicitly requested.
-  `origin` initially points to KDE upstream; check remotes before any publishing.
+  `origin` points to `https://github.com/alex47/BreezeSquared.git`; `upstream`
+  points to KDE's Breeze repository. Check remotes before any publishing.

@@ -12,12 +12,17 @@ records the intended behavior so it can survive changes in upstream architecture
 | Release tag | `v6.6.5` |
 | Commit | `bfe46a06e92a196fe3051706051d5c5e2d497e92` |
 | Current fork branch | `breezesquared` |
+| Fork repository (`origin`) | <https://github.com/alex47/BreezeSquared> |
 
 [upstream-base.json](upstream-base.json) is the machine-readable reference used by
 the tests. It also records the upstream decoration target and output path. These
 are source versions, not distribution package revisions or the KWin version.
-The initial `origin` remote points to KDE upstream; there is no requirement for
-a separate hosted fork to build or test locally.
+`origin` points to the BreezeSquared repository on GitHub. `upstream` points to
+KDE's Breeze repository. The local default push remote is `origin`; the
+`breezesquared` branch tracks `origin/breezesquared`. The upstream base tag is
+also published to the fork so fresh clones can run the reference comparisons.
+Fresh GitHub clones need the `upstream` remote added separately, as shown in
+`tests/README.md`.
 
 Inspect the complete changes from the current base with:
 
@@ -64,6 +69,7 @@ use `git show <commit>`; use `git log -p -- <path>` to trace later adjustments.
 | `e33acb12` | Replace circular button backgrounds with rectangles covering button geometry. |
 | `8c2b8707` | Use full-height squares, remove automatic gaps, center original icons, and correct fractional input routing. |
 | `065030c6` | Remove the right outer inset and preserve rounded outlines in painting and input. |
+| `af7a459a` | Document the fork and track tests that rebuild the upstream reference from Git. |
 
 The current implementation combines these patches. Replaying only the first
 rectangle patch does not reproduce the final behavior.
