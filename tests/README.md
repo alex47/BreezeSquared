@@ -14,15 +14,14 @@ plus Python 3.12 or newer, Git, CMake, Ninja, and the DejaVu Sans font (on Ubunt
 synthetic bridge. A complete clone must contain the tag and commit recorded in
 [upstream-base.json](../upstream-base.json).
 
-The 6.7.5 upgrade currently lives on the local `upgrade/breeze-6.7.5` branch and
-has not been pushed. Use this working checkout to test the upgrade. A fresh clone
-from GitHub retrieves the previously published `breezesquared` branch.
+The 6.7.5 upgrade is published on `upgrade/breeze-6.7.5`. The preserved
+`breezesquared` branch still contains the earlier 6.6.5-based fork.
 
 For a new checkout, clone the fork, add KDE as the upstream remote, and obtain
 the selected reference tag:
 
 ```sh
-git clone --branch breezesquared https://github.com/alex47/BreezeSquared.git
+git clone --branch upgrade/breeze-6.7.5 https://github.com/alex47/BreezeSquared.git
 cd BreezeSquared
 git remote add upstream https://invent.kde.org/plasma/breeze.git
 git fetch upstream tag v6.7.5
@@ -120,8 +119,10 @@ was dirty. A failed run removes the previous success summary and returns nonzero
 Logs and compiled artifacts are not committed.
 
 The 6.7.5 upgrade passed this suite with Qt 6.11.2, Frameworks 6.29.0, and
-KDecoration3 6.7.5. Installation, activation, and live KWin/settings validation
-remain pending. The runner's `^breezesquared\.` selection excludes upstream KCM
+KDecoration3 6.7.5. The installed decoration was confirmed loaded in the running
+KWin on 2026-10-22 using the binary checks in [BUILDING.md](../BUILDING.md).
+Full manual desktop/settings validation remains pending.
+The runner's `^breezesquared\.` selection excludes upstream KCM
 smoke tests, which launch `kcmshell6` and require explicit GUI authorization.
 Use the documented filtered commands rather than an unrestricted CTest run for
 windowless verification.

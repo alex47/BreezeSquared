@@ -21,9 +21,9 @@ are source versions, not distribution package revisions or the KWin version.
 `origin` points to the BreezeSquared repository on GitHub. `upstream` points to
 KDE's Breeze repository. The local default push remote is `origin`; the
 `breezesquared` branch tracks `origin/breezesquared` and retains the 6.6.5-based
-fork. The upgrade branch is local and has not been pushed. Fresh GitHub clones
-need the `upstream` remote and selected release tag added separately, as shown
-in `tests/README.md`; they do not contain this unpublished upgrade branch.
+fork. The upgrade branch has been pushed to `origin/upgrade/breeze-6.7.5`.
+Fresh GitHub clones can select that branch, then add the `upstream` remote and
+selected release tag as shown in [tests/README.md](tests/README.md).
 
 Inspect the complete changes from the current base with:
 
@@ -38,8 +38,10 @@ use `git show <commit>`; use `git log -p -- <path>` to trace later adjustments.
 
 ## 6.7.5 upgrade
 
-The upgrade merges the complete upstream release while preserving the original
-fork patches. Unmodified application styles, colors, cursors, translations,
+Merge commit `62222054` brings the complete upstream release into the existing
+fork history on `upgrade/breeze-6.7.5`, preserving the original fork patches.
+The separate branch keeps the pre-upgrade `breezesquared` branch available.
+Unmodified application styles, colors, cursors, translations,
 wallpapers, and supporting code match `v6.7.5`. Plugin descriptions and keywords
 include upstream translation updates while retaining BreezeSquared's identities.
 
@@ -54,8 +56,11 @@ Validation on Qt 6.11.2, Frameworks 6.29.0, and KDecoration3 6.7.5 passed the
 decoration/KCM build and 2,592 test configurations, including 1,872 comparisons
 with freshly built upstream 6.7.5. The added hidden-titlebar cases also distinguish
 the old 6.6.5 corner radius and outline behavior. See `tests/README.md` for coverage.
-Installation, activation, GUI smoke tests, and live KWin/settings validation are
-pending; this recorded base establishes source/build and automated compatibility.
+On 2026-10-22, the installed decoration was confirmed loaded in the running KWin
+after manual compositor replacement: its file hash matched the build, and KWin's
+mapped inode matched the installed file without a `(deleted)` suffix. See
+[BUILDING.md](BUILDING.md) for the build/install/reload/check commands. GUI smoke
+tests and full manual desktop/settings validation remain pending.
 
 ## Behavior to preserve
 
@@ -94,6 +99,7 @@ pending; this recorded base establishes source/build and automated compatibility
 | `8c2b8707` | Use full-height squares, remove automatic gaps, center original icons, and correct fractional input routing. |
 | `065030c6` | Remove the right outer inset and preserve rounded outlines in painting and input. |
 | `af7a459a` | Document the fork and track tests that rebuild the upstream reference from Git. |
+| `62222054` | Merge Breeze 6.7.5, preserve fork behavior, and add upstream corner/outline comparisons. |
 
 The current implementation combines these patches. Replaying only the first
 rectangle patch does not reproduce the final behavior.
