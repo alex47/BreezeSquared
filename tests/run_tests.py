@@ -13,7 +13,18 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SIZES = ("ButtonTiny", "ButtonSmall", "ButtonDefault", "ButtonLarge", "ButtonVeryLarge")
-VARIANTS = (*SIZES, "no-alpha", "border-on-maximized", "gradient", "alternate-layout", "inactive")
+BORDER_VARIANTS = {
+    f"border-{titlebar}-{corners}-{outline}": [
+        "--border-state",
+        *(["--hide-titlebar"] if titlebar == "hidden" else []),
+        *(["--no-rounded-corners"] if corners == "square" else []),
+        *(["--outline"] if outline == "outline" else []),
+    ]
+    for titlebar in ("shown", "hidden")
+    for corners in ("rounded", "square")
+    for outline in ("outline", "no-outline")
+}
+VARIANTS = (*SIZES, "no-alpha", "border-on-maximized", "gradient", "alternate-layout", "inactive", *BORDER_VARIANTS)
 
 
 def run(command, *, capture=False):
@@ -118,14 +129,16 @@ def main():
         raise RuntimeError(f"Reference plugin not found: {reference_plugin}; check upstream build layout")
     paths = json.loads((current_build / "tests" / "test-paths.json").read_text())
     comparisons = []
-    for size in SIZES:
-        reference_report = work / f"upstream-{size}.json"
-        run([paths["harness"], str(reference_plugin), size, "--baseline", "--report", str(reference_report)])
+    reference_cases = [(size, size, []) for size in SIZES]
+    reference_cases += [(name, "ButtonDefault", options) for name, options in BORDER_VARIANTS.items()]
+    for name, size, options in reference_cases:
+        reference_report = work / f"upstream-{name}.json"
+        run([paths["harness"], str(reference_plugin), size, "--baseline", *options, "--report", str(reference_report)])
         expected = json.loads(reference_report.read_text())
-        actual = json.loads((reports / f"{size}.json").read_text())
-        compare_reports(expected, actual, size)
-        comparisons.append({"button_size": size, "configurations": len(actual)})
-        print(f"{size}: title-bar geometry and rendered icons match upstream in {len(actual)} configurations", flush=True)
+        actual = json.loads((reports / f"{name}.json").read_text())
+        compare_reports(expected, actual, name)
+        comparisons.append({"variant": name, "button_size": size, "configurations": len(actual)})
+        print(f"{name}: matches upstream in {len(actual)} configurations", flush=True)
 
     counts = {name: len(json.loads((reports / f"{name}.json").read_text())) for name in VARIANTS}
     summary = {

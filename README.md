@@ -1,7 +1,7 @@
 # BreezeSquared
 
-BreezeSquared is a fork of the Breeze window decoration, starting from
-upstream release `v6.6.5`. It has its own decoration plugin, settings module,
+BreezeSquared is a fork of the Breeze window decoration, based on
+upstream release `v6.7.5`. It has its own decoration plugin, settings module,
 and `breezesquaredrc` settings file.
 
 Buttons have square hover, click, and highlight areas spanning the full title-bar
@@ -48,7 +48,7 @@ If you can't find what you're looking for, it may exist in another repository in
 
 ## Building
 
-The easiest way to make changes and test Breeze during development is to [build it with kdesrc-build](https://community.kde.org/Get_Involved/development/Build_software_with_kdesrc-build).
+The easiest way to make changes and test Breeze during development is to [build it with kde-builder](https://develop.kde.org/docs/getting-started/building).
 
 When building Breeze manually, keep in mind that the Qt5 and Qt6 versions will be built by default. To control which versions are built, use the `BUILD_QT5` and `BUILD_QT6` CMake variables.
 

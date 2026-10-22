@@ -1,6 +1,6 @@
 # Building BreezeSquared
 
-This working copy starts at Breeze `v6.6.5`. The separate `breeze` checkout is
+This working copy is based on Breeze `v6.7.5`. The separate `breeze` checkout is
 the preserved upstream reference; use this checkout for development.
 
 ## Prerequisites
@@ -9,7 +9,8 @@ Install KDE Builder and its standard distribution dependencies following
 [KDE's setup guide](https://develop.kde.org/docs/getting-started/building/kde-builder-setup/).
 This configuration uses system development packages instead of building KDE
 Frameworks or KDecoration from source. Breeze requires Qt 6.10 or newer,
-KDE Frameworks 6.22 or newer, and KDecoration3.
+KDE Frameworks 6.26 or newer, and KDecoration3. The 6.7.5 upgrade was built and
+tested with Qt 6.11.2, Frameworks 6.29.0, and KDecoration3 6.7.5.
 
 On the Ubuntu development machine, the additional packages are:
 
@@ -18,7 +19,7 @@ sudo apt install --no-install-recommends \
   extra-cmake-modules libkdecorations3-dev \
   libkf6coreaddons-dev libkf6colorscheme-dev libkf6config-dev \
   libkf6guiaddons-dev libkf6i18n-dev libkf6iconthemes-dev \
-  libkf6windowsystem-dev libkf6kcmutils-dev libkirigami-dev
+  libkf6windowsystem-dev libkf6kcmutils-dev
 ```
 
 ## Build
@@ -66,6 +67,9 @@ upstream reference from local source, then checks geometry, input, rendering, an
 compatibility with the upstream title-bar size and icons. It does not install or
 activate plugins. See [tests/README.md](tests/README.md) for results, faster checks,
 and limitations; see [FORK.md](FORK.md) for upstream porting.
+
+The 6.7.5 upgrade has passed the local build and isolated regression suite.
+Installation, activation, and live KWin/settings validation remain pending.
 
 ## Installation
 

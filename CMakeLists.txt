@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.16)
 project(breezesquared)
-set(PROJECT_VERSION "6.6.5")
+set(PROJECT_VERSION "6.7.5")
 
 set(KF5_MIN_VERSION "5.102.0")
-set(KF6_MIN_VERSION "6.22.0")
+set(KF6_MIN_VERSION "6.26.0")
 set(KDE_COMPILERSETTINGS_LEVEL "5.82")
 set(QT5_MIN_VERSION "5.15.2")
 set(QT_MIN_VERSION "6.10.0")
@@ -38,6 +38,8 @@ include(GtkUpdateIconCache)
 
 option(BUILD_QT5 "Build Qt5 style" ON)
 option(BUILD_QT6 "Build with Qt6" ON)
+option(BUILD_CURSOR "Build Breeze Cursor" ON)
+option(BUILD_WITH_QTQUICK "Build with Qt Quick features enabled" ON)
 
 set(QT_NO_CREATE_VERSIONLESS_TARGETS ON)
 set(QT_NO_CREATE_VERSIONLESS_FUNCTIONS ON)
@@ -85,9 +87,8 @@ function(build_Qt5)
         IconThemes
         WindowSystem)
 
-    find_package(Qt5 ${QT5_MIN_VERSION} OPTIONAL_COMPONENTS Quick)
-    if(${Qt5Quick_FOUND})
-        find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS Kirigami2)
+    if(BUILD_WITH_QTQUICK)
+        find_package(Qt5 ${QT5_MIN_VERSION} REQUIRED COMPONENTS Quick)
     endif()
 
     set(BREEZE_HAVE_KSTYLE ${KF5FrameworkIntegration_FOUND})
@@ -143,17 +144,12 @@ function(build_Qt6)
         IconThemes
         WindowSystem)
 
-    find_package(Qt6 ${QT_MIN_VERSION} OPTIONAL_COMPONENTS Quick)
-    if(${Qt6Quick_FOUND})
-        find_package(KF6KirigamiPlatform ${KF6_MIN_VERSION} REQUIRED)
+    if(BUILD_WITH_QTQUICK)
+        find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Quick)
     endif()
 
     set(BREEZE_HAVE_KSTYLE ${KF6FrameworkIntegration_FOUND})
     set(BREEZE_HAVE_QTQUICK ${Qt6Quick_FOUND})
-
-    # https://bugreports.qt.io/browse/QTBUG-114706
-    add_library(Qt::Core ALIAS Qt6::Core)
-    add_library(Qt::Gui ALIAS Qt6::Gui)
 
     add_subdirectory(kstyle kstyle6)
     add_subdirectory(libbreezecommon libbreezecommon6)
@@ -203,7 +199,9 @@ function(build_colors_and_cursors)
     # only use ICONDIR and DATADIR which both do not depend on the version
     include(KDEInstallDirs)
     add_subdirectory(colors)
-    add_subdirectory(cursors)
+    if(BUILD_CURSOR)
+        add_subdirectory(cursors)
+    endif()
 endfunction()
 
 build_colors_and_cursors()

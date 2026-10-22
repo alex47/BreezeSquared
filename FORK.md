@@ -9,9 +9,10 @@ records the intended behavior so it can survive changes in upstream architecture
 | Item | Recorded value |
 | --- | --- |
 | Source repository | <https://invent.kde.org/plasma/breeze.git> |
-| Release tag | `v6.6.5` |
-| Commit | `bfe46a06e92a196fe3051706051d5c5e2d497e92` |
-| Current fork branch | `breezesquared` |
+| Release tag | `v6.7.5` |
+| Commit | `ca217f12ce16a28e601c78b7f2fdceca586725b2` |
+| Current upgrade branch | `upgrade/breeze-6.7.5` |
+| Preserved pre-upgrade branch | `breezesquared` at `db82145ab1dd42431b18165570224e7af3c91e37` |
 | Fork repository (`origin`) | <https://github.com/alex47/BreezeSquared> |
 
 [upstream-base.json](upstream-base.json) is the machine-readable reference used by
@@ -19,21 +20,42 @@ the tests. It also records the upstream decoration target and output path. These
 are source versions, not distribution package revisions or the KWin version.
 `origin` points to the BreezeSquared repository on GitHub. `upstream` points to
 KDE's Breeze repository. The local default push remote is `origin`; the
-`breezesquared` branch tracks `origin/breezesquared`. The upstream base tag is
-also published to the fork so fresh clones can run the reference comparisons.
-Fresh GitHub clones need the `upstream` remote added separately, as shown in
-`tests/README.md`.
+`breezesquared` branch tracks `origin/breezesquared` and retains the 6.6.5-based
+fork. The upgrade branch is local and has not been pushed. Fresh GitHub clones
+need the `upstream` remote and selected release tag added separately, as shown
+in `tests/README.md`; they do not contain this unpublished upgrade branch.
 
 Inspect the complete changes from the current base with:
 
 ```sh
-git log --reverse --oneline v6.6.5..HEAD
-git diff --find-renames --stat v6.6.5..HEAD
-git diff --find-renames v6.6.5..HEAD -- kdecoration CMakeLists.txt
+git log --reverse --oneline v6.7.5..HEAD
+git diff --find-renames --stat v6.7.5..HEAD
+git diff --find-renames v6.7.5..HEAD -- kdecoration CMakeLists.txt
 ```
 
 After an upgrade, substitute the newly recorded base tag. To inspect one change,
 use `git show <commit>`; use `git log -p -- <path>` to trace later adjustments.
+
+## 6.7.5 upgrade
+
+The upgrade merges the complete upstream release while preserving the original
+fork patches. Unmodified application styles, colors, cursors, translations,
+wallpapers, and supporting code match `v6.7.5`. Plugin descriptions and keywords
+include upstream translation updates while retaining BreezeSquared's identities.
+
+The decoration adopts upstream's Qt 5 cleanup, removal of tablet-mode button
+enlargement, and hidden-titlebar corner/outline fixes. The custom button geometry,
+icon centering, input adapters, and title-bar painting layer are preserved.
+KDecoration3's existing private bridge remains sufficient for the test harness;
+no bridge API adaptation was needed. The new upstream KCM smoke test uses the
+fork's settings-plugin name and is excluded from the windowless test runner.
+
+Validation on Qt 6.11.2, Frameworks 6.29.0, and KDecoration3 6.7.5 passed the
+decoration/KCM build and 2,592 test configurations, including 1,872 comparisons
+with freshly built upstream 6.7.5. The added hidden-titlebar cases also distinguish
+the old 6.6.5 corner radius and outline behavior. See `tests/README.md` for coverage.
+Installation, activation, GUI smoke tests, and live KWin/settings validation are
+pending; this recorded base establishes source/build and automated compatibility.
 
 ## Behavior to preserve
 
@@ -41,6 +63,8 @@ use `git show <commit>`; use `git log -p -- <path>` to trace later adjustments.
   width and height to that existing `borderTop()` value, with `y = 0`.
 - Preserve upstream icons and their sizing, centering them inside the larger
   buttons. A larger hit area must not enlarge an icon or the title bar.
+- Follow upstream 6.7.5 sizing in tablet mode; the former automatic enlargement
+  is no longer part of Breeze or this fork.
 - Keep zero automatic spacing between adjacent buttons. Explicit spacers in the
   user's KWin layout retain their preferred width.
 - Position the right button group flush with the outer window edge in every

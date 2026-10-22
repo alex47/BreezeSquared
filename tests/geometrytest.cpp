@@ -404,6 +404,21 @@ static QJsonObject iconFingerprint(DecorationButton *button)
             {"height", bounds.height()},
             {"hash", QString::fromLatin1(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex())}};
 }
+static QJsonArray radiusReport(const BorderRadius &radius)
+{
+    return {radius.topLeft(), radius.topRight(), radius.bottomRight(), radius.bottomLeft()};
+}
+static QJsonObject borderReport(Decoration *decoration)
+{
+    const auto outline = decoration->borderOutline();
+    return {{"borders", QJsonArray{decoration->borderLeft(), decoration->borderTop(), decoration->borderRight(), decoration->borderBottom()}},
+            {"radius", radiusReport(decoration->borderRadius())},
+            {"outline",
+             QJsonObject{{"null", outline.isNull()},
+                         {"thickness", outline.thickness()},
+                         {"color", outline.color().name(QColor::HexArgb)},
+                         {"radius", radiusReport(outline.radius())}}}};
+}
 int main(int argc, char **argv)
 {
     QTemporaryDir temp;
@@ -433,6 +448,10 @@ int main(int argc, char **argv)
         {QStringLiteral("border-on-maximized"), QStringLiteral("Enable borders on maximized windows")},
         {QStringLiteral("alternate-layout"), QStringLiteral("Place Minimize at the right edge")},
         {QStringLiteral("gradient"), QStringLiteral("Enable the title-bar background gradient")},
+        {QStringLiteral("border-state"), QStringLiteral("Record border geometry and outlines instead of testing visible buttons")},
+        {QStringLiteral("hide-titlebar"), QStringLiteral("Hide the title bar except on shaded windows")},
+        {QStringLiteral("no-rounded-corners"), QStringLiteral("Disable the rounded window corners setting")},
+        {QStringLiteral("outline"), QStringLiteral("Enable the window outline")},
         {QStringLiteral("report"), QStringLiteral("Write the JSON report to this file"), QStringLiteral("file")},
     });
     parser.process(app);
@@ -445,10 +464,18 @@ int main(int argc, char **argv)
                             QStringLiteral("ButtonLarge"),
                             QStringLiteral("ButtonVeryLarge")};
     const bool baseline = parser.isSet(QStringLiteral("baseline"));
+    const bool borderState = parser.isSet(QStringLiteral("border-state"));
+    const bool hideTitleBar = parser.isSet(QStringLiteral("hide-titlebar"));
     try {
         require(sizes.contains(positional.at(1)), QStringLiteral("Unknown button size"));
         require(QFontDatabase::hasFamily(QStringLiteral("DejaVu Sans")), QStringLiteral("Install the DejaVu Sans font to run these checks"));
-        QByteArray configData("[Common]\nShadowSize=ShadowNone\nOutlineEnabled=false\n[Windeco]\nButtonSize=");
+        QByteArray configData("[Common]\nShadowSize=ShadowNone\nOutlineEnabled=");
+        configData += parser.isSet(QStringLiteral("outline")) ? "true\n" : "false\n";
+        configData += "RoundedCorners=";
+        configData += parser.isSet(QStringLiteral("no-rounded-corners")) ? "false\n" : "true\n";
+        configData += "[Windeco]\nHideTitleBar=";
+        configData += hideTitleBar ? "true\n" : "false\n";
+        configData += "ButtonSize=";
         configData += positional.at(1).toUtf8() + '\n';
         if (parser.isSet(QStringLiteral("border-on-maximized")))
             configData += "DrawBorderOnMaximizedWindows=true\n";
@@ -507,6 +534,19 @@ int main(int argc, char **argv)
                             {"case", key},
                             {"height", height},
                             {"titleBar", QJsonArray{originalTitleBar.x(), originalTitleBar.y(), originalTitleBar.width(), originalTitleBar.height()}}};
+                        if (borderState) {
+                            // Hidden title bars may have zero height, and shaded
+                            // windows show their title bar even with HideTitleBar.
+                            // Compare the public decoration state with upstream;
+                            // visible-button assertions belong to the other cases.
+                            if (hideTitleBar && !s.shaded && s.border == BorderSize::None)
+                                require(equal(height, 0), key + " titlebar was not hidden");
+                            if (!hideTitleBar || s.shaded)
+                                require(height > 0, key + " visible titlebar missing");
+                            row["borderState"] = borderReport(d.get());
+                            rows.append(row);
+                            continue;
+                        }
                         DecorationButton *close = nullptr;
                         for (auto group : groups) {
                             if (!baseline)

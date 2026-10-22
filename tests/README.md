@@ -14,12 +14,18 @@ plus Python 3.12 or newer, Git, CMake, Ninja, and the DejaVu Sans font (on Ubunt
 synthetic bridge. A complete clone must contain the tag and commit recorded in
 [upstream-base.json](../upstream-base.json).
 
-For a new checkout, clone the fork and add KDE as the upstream remote:
+The 6.7.5 upgrade currently lives on the local `upgrade/breeze-6.7.5` branch and
+has not been pushed. Use this working checkout to test the upgrade. A fresh clone
+from GitHub retrieves the previously published `breezesquared` branch.
+
+For a new checkout, clone the fork, add KDE as the upstream remote, and obtain
+the selected reference tag:
 
 ```sh
 git clone --branch breezesquared https://github.com/alex47/BreezeSquared.git
 cd BreezeSquared
 git remote add upstream https://invent.kde.org/plasma/breeze.git
+git fetch upstream tag v6.7.5
 git config remote.pushDefault origin
 ```
 
@@ -36,7 +42,8 @@ The script can also be invoked by its absolute path from any directory. It:
 3. Configures and builds the fork decoration, settings module, and test executable
    with system libraries, then runs the CTest matrix.
 4. Builds the original upstream decoration with the same libraries and compares
-   its title-bar geometry and rendered icon fingerprints with the fork.
+   its title-bar geometry, rendered icon fingerprints, border radii, and outlines
+   with the fork.
 
 No existing `build/` files or KDE Builder installation are needed for this test
 command. It performs no package installation, network fetch, plugin installation,
@@ -74,8 +81,20 @@ shaded): 144 configurations.
 
 Five cases cover all button-size presets. Five further cases cover disabled alpha
 support, borders on maximized windows, gradients, a different rightmost button,
-and inactive windows. Total: **1,440 configurations**. The five size cases also
-provide **720 comparisons** against the recorded upstream release.
+and inactive windows. Total for these behavior checks: **1,440 configurations**.
+The five size cases also provide **720 geometry/icon comparisons** against the
+recorded upstream release.
+
+Eight additional cases cover title bars shown/hidden, rounded corners on/off,
+and outlines on/off, using the same font/scale/border/window-state matrix. They
+compare all four border widths and corner radii plus outline presence, thickness,
+color, and radii with upstream. Hidden title bars are checked separately from
+visible-button assertions; shaded windows still show their title bars. These
+cases add **1,152 configurations and upstream comparisons**.
+
+Overall: **2,592 configurations and 1,872 upstream comparisons**. The new cases
+detect the pre-6.7 hidden-titlebar corner and outline behavior when run against
+Breeze 6.6.5, providing a check that they exercise the upstream fixes.
 
 Checks cover:
 
@@ -99,6 +118,13 @@ The default output is `build/regression/summary.json`, with per-case reports in
 summary. Reports include the upstream commit and whether the tested working tree
 was dirty. A failed run removes the previous success summary and returns nonzero.
 Logs and compiled artifacts are not committed.
+
+The 6.7.5 upgrade passed this suite with Qt 6.11.2, Frameworks 6.29.0, and
+KDecoration3 6.7.5. Installation, activation, and live KWin/settings validation
+remain pending. The runner's `^breezesquared\.` selection excludes upstream KCM
+smoke tests, which launch `kcmshell6` and require explicit GUI authorization.
+Use the documented filtered commands rather than an unrestricted CTest run for
+windowless verification.
 
 The harness depends on KDecoration3's private bridge interfaces and must be
 reviewed when those APIs change. It does not exercise a running KWin, plugin/KCM
