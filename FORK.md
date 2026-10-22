@@ -11,8 +11,9 @@ records the intended behavior so it can survive changes in upstream architecture
 | Source repository | <https://invent.kde.org/plasma/breeze.git> |
 | Release tag | `v6.7.5` |
 | Commit | `ca217f12ce16a28e601c78b7f2fdceca586725b2` |
-| Current upgrade branch | `upgrade/breeze-6.7.5` |
-| Preserved pre-upgrade branch | `breezesquared` at `db82145ab1dd42431b18165570224e7af3c91e37` |
+| Current branch | `breezesquared` |
+| Merged upgrade branch | `upgrade/breeze-6.7.5` |
+| Pre-upgrade revision (retained in history) | `db82145ab1dd42431b18165570224e7af3c91e37` |
 | Fork repository (`origin`) | <https://github.com/alex47/BreezeSquared> |
 
 [upstream-base.json](upstream-base.json) is the machine-readable reference used by
@@ -20,10 +21,11 @@ the tests. It also records the upstream decoration target and output path. These
 are source versions, not distribution package revisions or the KWin version.
 `origin` points to the BreezeSquared repository on GitHub. `upstream` points to
 KDE's Breeze repository. The local default push remote is `origin`; the
-`breezesquared` branch tracks `origin/breezesquared` and retains the 6.6.5-based
-fork. The upgrade branch has been pushed to `origin/upgrade/breeze-6.7.5`.
-Fresh GitHub clones can select that branch, then add the `upstream` remote and
-selected release tag as shown in [tests/README.md](tests/README.md).
+`breezesquared` branch tracks `origin/breezesquared` and now includes the 6.7.5
+upgrade locally. Publishing this updated branch requires a separate push.
+The upgrade branch was already pushed to `origin/upgrade/breeze-6.7.5`.
+Fresh GitHub clones can select that published branch, then add the `upstream`
+remote and selected release tag as shown in [tests/README.md](tests/README.md).
 
 Inspect the complete changes from the current base with:
 
@@ -40,7 +42,9 @@ use `git show <commit>`; use `git log -p -- <path>` to trace later adjustments.
 
 Merge commit `62222054` brings the complete upstream release into the existing
 fork history on `upgrade/breeze-6.7.5`, preserving the original fork patches.
-The separate branch keeps the pre-upgrade `breezesquared` branch available.
+On 2026-10-22, `breezesquared` was fast-forwarded to the upgrade branch, including
+the deployment documentation commit `c129daa9`. The pre-upgrade revision remains
+available in Git history.
 Unmodified application styles, colors, cursors, translations,
 wallpapers, and supporting code match `v6.7.5`. Plugin descriptions and keywords
 include upstream translation updates while retaining BreezeSquared's identities.

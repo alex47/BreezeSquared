@@ -14,8 +14,9 @@ plus Python 3.12 or newer, Git, CMake, Ninja, and the DejaVu Sans font (on Ubunt
 synthetic bridge. A complete clone must contain the tag and commit recorded in
 [upstream-base.json](../upstream-base.json).
 
-The 6.7.5 upgrade is published on `upgrade/breeze-6.7.5`. The preserved
-`breezesquared` branch still contains the earlier 6.6.5-based fork.
+The 6.7.5 upgrade has been merged into `breezesquared` locally. The clone command
+below uses the published `upgrade/breeze-6.7.5` branch, so it also works before
+the updated `breezesquared` branch is pushed.
 
 For a new checkout, clone the fork, add KDE as the upstream remote, and obtain
 the selected reference tag:
